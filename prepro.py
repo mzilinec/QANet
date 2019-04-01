@@ -52,7 +52,6 @@ def process_file(filename, data_type, word_counter, char_counter):
                     for char in token:
                         char_counter[char] += len(para["qas"])
                 for qa in para["qas"]:
-                    total += 1
                     ques = qa["question"].replace(
                         "''", '" ').replace("``", '" ')
                     ques_tokens = word_tokenize(ques)
@@ -75,11 +74,13 @@ def process_file(filename, data_type, word_counter, char_counter):
                         y1, y2 = answer_span[0], answer_span[-1]
                         y1s.append(y1)
                         y2s.append(y2)
-                    example = {"context_tokens": context_tokens, "context_chars": context_chars, "ques_tokens": ques_tokens,
-                               "ques_chars": ques_chars, "y1s": y1s, "y2s": y2s, "id": total}
-                    examples.append(example)
-                    eval_examples[str(total)] = {
-                        "context": context, "spans": spans, "answers": answer_texts, "uuid": qa["id"]}
+                    if len(y1s) > 0 and len(y2s) > 0:
+                        total += 1
+                        example = {"context_tokens": context_tokens, "context_chars": context_chars, "ques_tokens": ques_tokens,
+                            "ques_chars": ques_chars, "y1s": y1s, "y2s": y2s, "id": total}
+                        examples.append(example)
+                        eval_examples[str(total)] = {
+                            "context": context, "spans": spans, "answers": answer_texts, "uuid": qa["id"]}
         random.shuffle(examples)
         print("{} questions in total".format(len(examples)))
     return examples, eval_examples
@@ -93,6 +94,14 @@ def get_embedding(counter, data_type, limit=-1, emb_file=None, size=None, vec_si
         assert size is not None
         assert vec_size is not None
         with open(emb_file, "r", encoding="utf-8") as fh:
+            line = fh.readline().split()
+            if len(line) == 2:
+                # fasttext's first row is a header
+                size, vec_size = [int(num) for num in line]
+            else:
+                # glove doesn't have a header
+                fh.seek(0)
+            
             for line in tqdm(fh, total=size):
                 array = line.split()
                 word = "".join(array[0:-vec_size])

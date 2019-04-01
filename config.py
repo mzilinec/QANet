@@ -24,7 +24,7 @@ if not os.path.exists(train_dir):
     os.mkdir(train_dir)
 if not os.path.exists(os.path.join(os.getcwd(),dir_name)):
     os.mkdir(os.path.join(os.getcwd(),dir_name))
-target_dir = "data"
+target_dir = "/opt/qa-data"
 log_dir = os.path.join(dir_name, "event")
 save_dir = os.path.join(dir_name, "model")
 answer_dir = os.path.join(dir_name, "answer")
